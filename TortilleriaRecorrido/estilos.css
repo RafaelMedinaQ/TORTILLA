@@ -1,78 +1,103 @@
+/* Fondo general cálido */
 body {
   font-family: 'Segoe UI', sans-serif;
-  background-color: #f3f3f3;
+  background-color: #fff7ea;
   margin: 0;
   padding: 40px;
   display: flex;
   justify-content: center;
 }
 
+/* Contenedor centrado y con sombra */
 .contenedor {
-  background-color: #ffffff;
+  background-color: #fffaf2;
   padding: 30px;
   border-radius: 15px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
 }
 
+/* Título principal */
 h1 {
   text-align: center;
-  color: #4b6584;
-  margin-bottom: 20px;
+  color: #b5561d;
+  font-size: 28px;
+  margin-bottom: 25px;
 }
 
+/* Buscador */
+#buscador {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: inset 0 0 3px rgba(0,0,0,0.05);
+}
+
+/* Tabla general */
 table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 10px;
+  border-spacing: 0 12px; /* Espacio entre filas */
 }
 
+/* Celdas */
 th, td {
+  background-color: #fff;
+  border: 1px solid #eee;
   padding: 10px;
-  background-color: #fdfdfd;
-  border: 1px solid #ddd;
   text-align: center;
-  border-radius: 8px;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 
-input[type="number"] {
-  width: 60px;
-  padding: 5px;
-  border-radius: 5px;
+/* Encabezado */
+th {
+  background-color: #ffe6cc;
+  color: #b5561d;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="number"],
+select {
+  padding: 6px;
+  font-size: 14px;
+  width: 90%;
   border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fffaf2;
 }
 
+/* Total y cambio */
+.total {
+  font-weight: bold;
+  color: #333;
+}
+
+/* Botones */
 button {
-  margin-top: 20px;
   padding: 10px 20px;
-  background-color: #58b19f;
+  font-size: 16px;
+  background-color: #f4a261;
   color: white;
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  font-size: 16px;
+  transition: background 0.2s ease;
 }
 
 button:hover {
-  background-color: #4aa897;
+  background-color: #e76f51;
 }
 
-#buscador {
-  margin-bottom: 20px;
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
+/* Botones en grupo */
 .botones {
+  margin-top: 25px;
   display: flex;
   gap: 10px;
-  margin-top: 20px;
-}
-
-.botones button {
-  flex: 1;
+  justify-content: center;
 }
