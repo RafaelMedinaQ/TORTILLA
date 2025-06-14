@@ -1,15 +1,16 @@
 const precioIntegral = 28;
 const tabla = document.getElementById("tablaLocales");
 let locales = cargarDesdeLocalStorage() || [
-  { nombre: "Tienda A", precioHarina: 22, harina: 0, integral: 0 },
-  { nombre: "Tienda B", precioHarina: 24, harina: 0, integral: 0 }
+  { nombre: "Tienda A", precioHarina: 22, harina: 0, integral: 0, pago: 0 }
 ];
 
-// Genera la tabla
 function renderizarTabla() {
   tabla.innerHTML = "";
   locales.forEach((local, index) => {
     const fila = document.createElement("tr");
+
+    const total = calcularTotal(local);
+    const cambio = local.pago > 0 ? (local.pago - total).toFixed(2) : "";
 
     fila.innerHTML = `
       <td><input type="text" value="${local.nombre}" onchange="actualizarNombre(${index}, this.value)"></td>
@@ -21,65 +22,64 @@ function renderizarTabla() {
       </td>
       <td><input type="number" min="0" value="${local.harina}" onchange="actualizarCantidad(${index}, 'harina', this.value)"></td>
       <td><input type="number" min="0" value="${local.integral}" onchange="actualizarCantidad(${index}, 'integral', this.value)"></td>
-      <td class="total" id="total-${index}">$${calcularTotal(local)}</td>
+      <td class="total" id="total-${index}">$${total.toFixed(2)}</td>
+      <td><input type="number" min="0" value="${local.pago || ""}" onchange="actualizarPago(${index}, this.value)"></td>
+      <td id="cambio-${index}">${cambio ? `$${cambio}` : ""}</td>
+      <td><button onclick="eliminarLocal(${index})">❌</button></td>
     `;
 
     tabla.appendChild(fila);
   });
 }
 
-// Actualiza nombre del local
 function actualizarNombre(index, nuevoNombre) {
   locales[index].nombre = nuevoNombre;
   guardarEnLocalStorage();
 }
 
-// Cambia el precio de harina (22 o 24)
 function actualizarPrecio(index, nuevoPrecio) {
   locales[index].precioHarina = parseInt(nuevoPrecio);
   guardarEnLocalStorage();
-  actualizarTotales();
+  renderizarTabla();
 }
 
-// Actualiza cantidades
 function actualizarCantidad(index, tipo, valor) {
   locales[index][tipo] = parseInt(valor) || 0;
   guardarEnLocalStorage();
-  actualizarTotales();
+  renderizarTabla();
 }
 
-// Calcula el total para un local
+function actualizarPago(index, valor) {
+  locales[index].pago = parseFloat(valor) || 0;
+  guardarEnLocalStorage();
+  renderizarTabla();
+}
+
 function calcularTotal(local) {
-  return ((local.harina * local.precioHarina) + (local.integral * precioIntegral)).toFixed(2);
+  return (local.harina * local.precioHarina) + (local.integral * precioIntegral);
 }
 
-// Refresca solo los totales
-function actualizarTotales() {
-  locales.forEach((local, i) => {
-    document.getElementById(`total-${i}`).textContent = `$${calcularTotal(local)}`;
-  });
-}
-
-// Guarda a localStorage
 function guardarEnLocalStorage() {
   localStorage.setItem("localesTortilla", JSON.stringify(locales));
 }
 
-// Carga desde localStorage
 function cargarDesdeLocalStorage() {
   return JSON.parse(localStorage.getItem("localesTortilla"));
 }
 
-// Exporta a Excel con nombre con fecha
 function exportarExcel() {
-  const datos = [["Local", "Precio Harina", "Cant. Harina", "Cant. Integral", "Total $"]];
+  const datos = [["Local", "Precio Harina", "Cant. Harina", "Cant. Integral", "Total $", "Pagó con", "Cambio"]];
   locales.forEach(local => {
+    const total = calcularTotal(local);
+    const cambio = local.pago ? (local.pago - total).toFixed(2) : "";
     datos.push([
       local.nombre,
       local.precioHarina,
       local.harina,
       local.integral,
-      calcularTotal(local)
+      total.toFixed(2),
+      local.pago || "",
+      cambio
     ]);
   });
 
@@ -90,7 +90,6 @@ function exportarExcel() {
   XLSX.writeFile(wb, `Tortillas_${fecha}.xlsx`);
 }
 
-// Filtro en vivo
 function filtrarLocales() {
   const filtro = document.getElementById("buscador").value.toLowerCase();
   const filas = tabla.getElementsByTagName("tr");
@@ -100,17 +99,25 @@ function filtrarLocales() {
   });
 }
 
-// Agrega nueva fila en blanco
 function agregarLocal() {
   locales.push({
     nombre: "",
     precioHarina: 22,
     harina: 0,
-    integral: 0
+    integral: 0,
+    pago: 0
   });
   guardarEnLocalStorage();
   renderizarTabla();
 }
 
-// Inicializa al cargar
+function eliminarLocal(index) {
+  if (confirm("¿Estás seguro de eliminar este local?")) {
+    locales.splice(index, 1);
+    guardarEnLocalStorage();
+    renderizarTabla();
+  }
+}
+
+// Inicializar
 renderizarTabla();
