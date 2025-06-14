@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Tortillería Margarita</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="contenedor">
+    <h1>Tortillería Margarita</h1>
+
+    <input type="text" id="buscador" placeholder="Buscar local..." oninput="filtrarLocales()">
+
+    <table>
+      <thead>
+        <tr>
+          <th>Local</th>
+          <th>Precio Harina</th>
+          <th>Cant. Harina</th>
+          <th>Cant. Integral</th>
+          <th>Total $</th>
+          <th>Pagó con</th>
+          <th>Cambio</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaLocales">
+        <!-- Generado por script.js -->
+      </tbody>
+    </table>
+
+    <div class="botones">
+      <button onclick="agregarLocal()">Agregar local</button>
+      <button onclick="exportarExcel()">Guardar en Excel</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
