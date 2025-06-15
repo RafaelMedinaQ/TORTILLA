@@ -1,17 +1,16 @@
 const precioIntegral = 28;
 const tabla = document.getElementById("tablaLocales");
 let locales = cargarDesdeLocalStorage() || [
-  { nombre: "Tienda A", precioHarina: 22, harina: 0, integral: 0, pago: 0 }
+  { nombre: "Tienda A", precioHarina: 22, harina: 0, integral: 0, devueltas: 0, pago: 0 }
 ];
 
 function renderizarTabla() {
   tabla.innerHTML = "";
   locales.forEach((local, index) => {
-    const fila = document.createElement("tr");
-
     const total = calcularTotal(local);
     const cambio = local.pago > 0 ? (local.pago - total).toFixed(2) : "";
 
+    const fila = document.createElement("tr");
     fila.innerHTML = `
       <td><input type="text" value="${local.nombre}" onchange="actualizarNombre(${index}, this.value)"></td>
       <td>
@@ -20,16 +19,18 @@ function renderizarTabla() {
           <option value="24" ${local.precioHarina == 24 ? "selected" : ""}>$24</option>
         </select>
       </td>
-      <td><input type="number" min="0" value="${local.harina}" onchange="actualizarCantidad(${index}, 'harina', this.value)"></td>
-      <td><input type="number" min="0" value="${local.integral}" onchange="actualizarCantidad(${index}, 'integral', this.value)"></td>
+      <td><input type="number" inputmode="numeric" min="0" value="${local.harina}" onchange="actualizarCantidad(${index}, 'harina', this.value)"></td>
+      <td><input type="number" inputmode="numeric" min="0" value="${local.integral}" onchange="actualizarCantidad(${index}, 'integral', this.value)"></td>
+      <td><input type="number" inputmode="numeric" min="0" value="${local.devueltas || 0}" onchange="actualizarCantidad(${index}, 'devueltas', this.value)"></td>
       <td class="total" id="total-${index}">$${total.toFixed(2)}</td>
-      <td><input type="number" min="0" value="${local.pago || ""}" onchange="actualizarPago(${index}, this.value)"></td>
+      <td><input type="number" inputmode="numeric" min="0" value="${local.pago || ""}" onchange="actualizarPago(${index}, this.value)"></td>
       <td id="cambio-${index}">${cambio ? `$${cambio}` : ""}</td>
       <td><button onclick="eliminarLocal(${index})">❌</button></td>
     `;
-
     tabla.appendChild(fila);
   });
+
+  calcularCambioTotal();
 }
 
 function actualizarNombre(index, nuevoNombre) {
@@ -59,6 +60,18 @@ function calcularTotal(local) {
   return (local.harina * local.precioHarina) + (local.integral * precioIntegral);
 }
 
+function calcularCambioTotal() {
+  let totalCambio = 0;
+  locales.forEach(local => {
+    const total = calcularTotal(local);
+    if (local.pago > total) {
+      totalCambio += (local.pago - total);
+    }
+  });
+  document.getElementById("resumenCambio").textContent =
+    `Total de cambio entregado: $${totalCambio.toFixed(2)}`;
+}
+
 function guardarEnLocalStorage() {
   localStorage.setItem("localesTortilla", JSON.stringify(locales));
 }
@@ -68,7 +81,7 @@ function cargarDesdeLocalStorage() {
 }
 
 function exportarExcel() {
-  const datos = [["Local", "Precio Harina", "Cant. Harina", "Cant. Integral", "Total $", "Pagó con", "Cambio"]];
+  const datos = [["Local", "Precio Harina", "Cant. Harina", "Cant. Integral", "Devueltas", "Total $", "Pagó con", "Cambio"]];
   locales.forEach(local => {
     const total = calcularTotal(local);
     const cambio = local.pago ? (local.pago - total).toFixed(2) : "";
@@ -77,6 +90,7 @@ function exportarExcel() {
       local.precioHarina,
       local.harina,
       local.integral,
+      local.devueltas || 0,
       total.toFixed(2),
       local.pago || "",
       cambio
@@ -105,6 +119,7 @@ function agregarLocal() {
     precioHarina: 22,
     harina: 0,
     integral: 0,
+    devueltas: 0,
     pago: 0
   });
   guardarEnLocalStorage();
@@ -118,6 +133,23 @@ function eliminarLocal(index) {
     renderizarTabla();
   }
 }
+
+function borrarTodo() {
+  if (confirm("¿Quieres borrar solo los datos numéricos (cantidades, pagos, etc.)?")) {
+    locales = locales.map(local => ({
+      ...local,
+      harina: 0,
+      integral: 0,
+      devueltas: 0,
+      pago: 0
+    }));
+    guardarEnLocalStorage();
+    renderizarTabla();
+    alert("Los datos numéricos han sido reiniciados.");
+  }
+}
+
+
 
 // Inicializar
 renderizarTabla();
