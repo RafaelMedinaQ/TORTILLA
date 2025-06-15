@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Tortillería Margarita</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="estilos.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -17,8 +18,9 @@
         <tr>
           <th>Local</th>
           <th>Precio Harina</th>
-          <th>Cant. Harina</th>
-          <th>Cant. Integral</th>
+          <th>Harina</th>
+          <th>Integral</th>
+          <th>Devueltas</th>
           <th>Total $</th>
           <th>Pagó con</th>
           <th>Cambio</th>
@@ -26,13 +28,18 @@
         </tr>
       </thead>
       <tbody id="tablaLocales">
-        <!-- Generado por script.js -->
+        <!-- Generado dinámicamente -->
       </tbody>
     </table>
+
+    <div id="resumenCambio">
+      Total de cambio entregado: $0.00
+    </div>
 
     <div class="botones">
       <button onclick="agregarLocal()">Agregar local</button>
       <button onclick="exportarExcel()">Guardar en Excel</button>
+      <button onclick="borrarTodo()">Borrar todo</button>
     </div>
   </div>
 
