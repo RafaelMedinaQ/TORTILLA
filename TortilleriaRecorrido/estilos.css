@@ -124,3 +124,49 @@ button:hover {
     font-size: 22px;
   }
 }
+
+
+@media screen and (max-width: 844px) {
+  .contenedor {
+    padding: 15px;
+    border-radius: 0;
+  }
+
+  table {
+    font-size: 13px;
+    min-width: 700px;
+    overflow-x: auto;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  #buscador {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .botones {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    margin-top: 20px;
+  }
+
+  button {
+    width: 100%;
+    font-size: 15px;
+    padding: 12px;
+  }
+
+  input[type="number"],
+  input[type="text"],
+  select {
+    font-size: 14px;
+  }
+}
