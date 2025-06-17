@@ -165,5 +165,42 @@ function borrarTodo() {
   }
 }
 
+
+function exportarExcel() {
+  const datos = [["Local", "Precio Harina", "Cant. Harina", "Cant. Integral", "Devueltas", "Total $", "Pagó con", "Cambio"]];
+  let totalVentas = 0;
+  let totalCambio = 0;
+
+  locales.forEach(local => {
+    const total = calcularTotal(local);
+    const cambio = local.pago ? (local.pago - total).toFixed(2) : "";
+    totalVentas += total;
+    if (local.pago > total) {
+      totalCambio += (local.pago - total);
+    }
+
+    datos.push([
+      local.nombre,
+      local.precioHarina,
+      local.harina,
+      local.integral,
+      local.devueltas || 0,
+      total.toFixed(2),
+      local.pago || "",
+      cambio
+    ]);
+  });
+
+  // Fila de totales
+  datos.push(["", "", "", "", "Totales:", totalVentas.toFixed(2), "", totalCambio.toFixed(2)]);
+
+  const ws = XLSX.utils.aoa_to_sheet(datos);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Tortillas");
+  const fecha = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `Tortillas_${fecha}.xlsx`);
+}
+
+
 // Inicializar
 renderizarTabla();
