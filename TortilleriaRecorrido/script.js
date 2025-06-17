@@ -5,12 +5,15 @@ let locales = cargarDesdeLocalStorage() || [
 ];
 
 function renderizarTabla() {
+  const filtroActivo = document.getElementById("buscador").value.toLowerCase(); // guardar filtro
+
   tabla.innerHTML = "";
   locales.forEach((local, index) => {
+    const fila = document.createElement("tr");
+
     const total = calcularTotal(local);
     const cambio = local.pago > 0 ? (local.pago - total).toFixed(2) : "";
 
-    const fila = document.createElement("tr");
     fila.innerHTML = `
       <td><input type="text" value="${local.nombre}" onchange="actualizarNombre(${index}, this.value)"></td>
       <td>
@@ -27,10 +30,17 @@ function renderizarTabla() {
       <td id="cambio-${index}">${cambio ? `$${cambio}` : ""}</td>
       <td><button onclick="eliminarLocal(${index})">❌</button></td>
     `;
+
     tabla.appendChild(fila);
   });
 
-  calcularCambioTotal();
+  calcularTotales();
+
+  // reaplica el filtro visual si está activo
+  if (filtroActivo !== "") {
+    document.getElementById("buscador").value = filtroActivo;
+    filtrarLocales();
+  }
 }
 
 function actualizarNombre(index, nuevoNombre) {
@@ -60,14 +70,20 @@ function calcularTotal(local) {
   return (local.harina * local.precioHarina) + (local.integral * precioIntegral);
 }
 
-function calcularCambioTotal() {
+function calcularTotales() {
   let totalCambio = 0;
+  let totalVentas = 0;
+
   locales.forEach(local => {
     const total = calcularTotal(local);
+    totalVentas += total;
     if (local.pago > total) {
       totalCambio += (local.pago - total);
     }
   });
+
+  document.getElementById("resumenTotal").textContent = 
+    `Total vendido: $${totalVentas.toFixed(2)}`;
   document.getElementById("resumenCambio").textContent =
     `Total de cambio entregado: $${totalCambio.toFixed(2)}`;
 }
@@ -148,8 +164,6 @@ function borrarTodo() {
     alert("Los datos numéricos han sido reiniciados.");
   }
 }
-
-
 
 // Inicializar
 renderizarTabla();
