@@ -97,10 +97,35 @@ function cargarDesdeLocalStorage() {
 }
 
 function exportarExcel() {
-  const datos = [["Local", "Precio Harina", "Cant. Harina", "Cant. Integral", "Devueltas", "Total $", "Pagó con", "Cambio"]];
+  const datos = [];
+  const fechaHoy = new Date().toLocaleDateString("es-MX", {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  // Encabezado
+  datos.push(["Tortillería Margarita"]);
+  datos.push(["Fecha:", fechaHoy]);
+  datos.push([""]);
+
+  // Encabezados de la tabla
+  datos.push([
+    "Local", "Precio Harina", "Cant. Harina",
+    "Cant. Integral", "Devueltas", "Total $", "Pagó con", "Cambio"
+  ]);
+
+  let totalVentas = 0;
+  let totalCambio = 0;
+
   locales.forEach(local => {
     const total = calcularTotal(local);
     const cambio = local.pago ? (local.pago - total).toFixed(2) : "";
+    totalVentas += total;
+    if (local.pago > total) {
+      totalCambio += (local.pago - total);
+    }
+
     datos.push([
       local.nombre,
       local.precioHarina,
@@ -113,34 +138,34 @@ function exportarExcel() {
     ]);
   });
 
+  // Fila de totales
+  datos.push(["", "", "", "", "Totales:", totalVentas.toFixed(2), "", totalCambio.toFixed(2)]);
+
   const ws = XLSX.utils.aoa_to_sheet(datos);
+
+  // Ajuste de ancho de columnas
+  ws['!cols'] = [
+    { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+    { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
+  ];
+
+  // Ajuste para impresión en hoja carta / A4
+  ws['!pageSetup'] = {
+    paperSize: 9, // A4
+    orientation: "landscape", // horizontal
+    fitToPage: true,
+    fitToWidth: 1,
+    fitToHeight: 0,
+    margins: { left: 0.25, right: 0.25, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 }
+  };
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Tortillas");
-  const fecha = new Date().toISOString().slice(0, 10);
-  XLSX.writeFile(wb, `Tortillas_${fecha}.xlsx`);
+
+  const fechaArchivo = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `Tortilleria_Margarita_${fechaArchivo}.xlsx`);
 }
 
-function filtrarLocales() {
-  const filtro = document.getElementById("buscador").value.toLowerCase();
-  const filas = tabla.getElementsByTagName("tr");
-  locales.forEach((local, i) => {
-    const visible = local.nombre.toLowerCase().includes(filtro);
-    filas[i].style.display = visible ? "" : "none";
-  });
-}
-
-function agregarLocal() {
-  locales.push({
-    nombre: "",
-    precioHarina: 22,
-    harina: 0,
-    integral: 0,
-    devueltas: 0,
-    pago: 0
-  });
-  guardarEnLocalStorage();
-  renderizarTabla();
-}
 
 function eliminarLocal(index) {
   if (confirm("¿Estás seguro de eliminar este local?")) {
