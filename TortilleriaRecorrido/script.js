@@ -98,16 +98,19 @@ function cargarDesdeLocalStorage() {
 
 function exportarExcel() {
   const datos = [];
-  const fechaHoy = new Date().toLocaleDateString("es-MX", {
-    year: 'numeric',
+
+  // Obtener y formatear la fecha
+  const fechaHoy = new Date();
+  const fechaFormateada = fechaHoy.toLocaleDateString('es-MX', {
+    day: 'numeric',
     month: 'long',
-    day: 'numeric'
+    year: 'numeric'
   });
 
-  // Encabezado
+  // Encabezado personalizado
   datos.push(["Tortillería Margarita"]);
-  datos.push(["Fecha:", fechaHoy]);
-  datos.push([""]);
+  datos.push(["Fecha:", fechaFormateada]);
+  datos.push([""]); // Espacio en blanco
 
   // Encabezados de la tabla
   datos.push([
@@ -143,16 +146,16 @@ function exportarExcel() {
 
   const ws = XLSX.utils.aoa_to_sheet(datos);
 
-  // Ajuste de ancho de columnas
+  // Ancho de columnas
   ws['!cols'] = [
     { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
     { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
   ];
 
-  // Ajuste para impresión en hoja carta / A4
+  // Configurar impresión para hoja A4 horizontal
   ws['!pageSetup'] = {
     paperSize: 9, // A4
-    orientation: "landscape", // horizontal
+    orientation: "landscape",
     fitToPage: true,
     fitToWidth: 1,
     fitToHeight: 0,
@@ -162,7 +165,7 @@ function exportarExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Tortillas");
 
-  const fechaArchivo = new Date().toISOString().slice(0, 10);
+  const fechaArchivo = fechaHoy.toISOString().slice(0, 10);
   XLSX.writeFile(wb, `Tortilleria_Margarita_${fechaArchivo}.xlsx`);
 }
 
