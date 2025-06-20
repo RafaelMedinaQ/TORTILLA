@@ -97,6 +97,76 @@ function cargarDesdeLocalStorage() {
 }
 
 function exportarExcel() {
+  const datos = [["Local", "Precio Harina", "Cant. Harina", "Cant. Integral", "Devueltas", "Total $", "Pagó con", "Cambio"]];
+  locales.forEach(local => {
+    const total = calcularTotal(local);
+    const cambio = local.pago ? (local.pago - total).toFixed(2) : "";
+    datos.push([
+      local.nombre,
+      local.precioHarina,
+      local.harina,
+      local.integral,
+      local.devueltas || 0,
+      total.toFixed(2),
+      local.pago || "",
+      cambio
+    ]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(datos);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Tortillas");
+  const fecha = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `Tortillas_${fecha}.xlsx`);
+}
+
+function filtrarLocales() {
+  const filtro = document.getElementById("buscador").value.toLowerCase();
+  const filas = tabla.getElementsByTagName("tr");
+  locales.forEach((local, i) => {
+    const visible = local.nombre.toLowerCase().includes(filtro);
+    filas[i].style.display = visible ? "" : "none";
+  });
+}
+
+function agregarLocal() {
+  locales.push({
+    nombre: "",
+    precioHarina: 22,
+    harina: 0,
+    integral: 0,
+    devueltas: 0,
+    pago: 0
+  });
+  guardarEnLocalStorage();
+  renderizarTabla();
+}
+
+function eliminarLocal(index) {
+  if (confirm("¿Estás seguro de eliminar este local?")) {
+    locales.splice(index, 1);
+    guardarEnLocalStorage();
+    renderizarTabla();
+  }
+}
+
+function borrarTodo() {
+  if (confirm("¿Quieres borrar solo los datos numéricos (cantidades, pagos, etc.)?")) {
+    locales = locales.map(local => ({
+      ...local,
+      harina: 0,
+      integral: 0,
+      devueltas: 0,
+      pago: 0
+    }));
+    guardarEnLocalStorage();
+    renderizarTabla();
+    alert("Los datos numéricos han sido reiniciados.");
+  }
+}
+
+
+function exportarExcel() {
   const datos = [];
 
   // Obtener y formatear la fecha
@@ -170,64 +240,6 @@ function exportarExcel() {
 }
 
 
-function eliminarLocal(index) {
-  if (confirm("¿Estás seguro de eliminar este local?")) {
-    locales.splice(index, 1);
-    guardarEnLocalStorage();
-    renderizarTabla();
-  }
-}
-
-function borrarTodo() {
-  if (confirm("¿Quieres borrar solo los datos numéricos (cantidades, pagos, etc.)?")) {
-    locales = locales.map(local => ({
-      ...local,
-      harina: 0,
-      integral: 0,
-      devueltas: 0,
-      pago: 0
-    }));
-    guardarEnLocalStorage();
-    renderizarTabla();
-    alert("Los datos numéricos han sido reiniciados.");
-  }
-}
-
-
-function exportarExcel() {
-  const datos = [["Local", "Precio Harina", "Cant. Harina", "Cant. Integral", "Devueltas", "Total $", "Pagó con", "Cambio"]];
-  let totalVentas = 0;
-  let totalCambio = 0;
-
-  locales.forEach(local => {
-    const total = calcularTotal(local);
-    const cambio = local.pago ? (local.pago - total).toFixed(2) : "";
-    totalVentas += total;
-    if (local.pago > total) {
-      totalCambio += (local.pago - total);
-    }
-
-    datos.push([
-      local.nombre,
-      local.precioHarina,
-      local.harina,
-      local.integral,
-      local.devueltas || 0,
-      total.toFixed(2),
-      local.pago || "",
-      cambio
-    ]);
-  });
-
-  // Fila de totales
-  datos.push(["", "", "", "", "Totales:", totalVentas.toFixed(2), "", totalCambio.toFixed(2)]);
-
-  const ws = XLSX.utils.aoa_to_sheet(datos);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Tortillas");
-  const fecha = new Date().toISOString().slice(0, 10);
-  XLSX.writeFile(wb, `Tortillas_${fecha}.xlsx`);
-}
 
 
 // Inicializar
