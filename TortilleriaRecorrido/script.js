@@ -5,12 +5,11 @@ let locales = cargarDesdeLocalStorage() || [
 ];
 
 function renderizarTabla() {
-  const filtroActivo = document.getElementById("buscador").value.toLowerCase(); // guardar filtro
+  const filtroActivo = document.getElementById("buscador").value.toLowerCase();
 
   tabla.innerHTML = "";
   locales.forEach((local, index) => {
     const fila = document.createElement("tr");
-
     const total = calcularTotal(local);
     const cambio = local.pago > 0 ? (local.pago - total).toFixed(2) : "";
 
@@ -30,13 +29,11 @@ function renderizarTabla() {
       <td id="cambio-${index}">${cambio ? `$${cambio}` : ""}</td>
       <td><button onclick="eliminarLocal(${index})">❌</button></td>
     `;
-
     tabla.appendChild(fila);
   });
 
   calcularTotales();
 
-  // reaplica el filtro visual si está activo
   if (filtroActivo !== "") {
     document.getElementById("buscador").value = filtroActivo;
     filtrarLocales();
@@ -97,10 +94,34 @@ function cargarDesdeLocalStorage() {
 }
 
 function exportarExcel() {
-  const datos = [["Local", "Precio Harina", "Cant. Harina", "Cant. Integral", "Devueltas", "Total $", "Pagó con", "Cambio"]];
+  const datos = [];
+  const fechaHoy = new Date();
+  const fechaFormateada = fechaHoy.toLocaleDateString('es-MX', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
+  datos.push(["Tortillería Margarita"]);
+  datos.push(["Fecha:", fechaFormateada]);
+  datos.push([""]);
+
+  datos.push([
+    "Local", "Precio Harina", "Cant. Harina",
+    "Cant. Integral", "Devueltas", "Total $", "Pagó con", "Cambio"
+  ]);
+
+  let totalVentas = 0;
+  let totalCambio = 0;
+
   locales.forEach(local => {
     const total = calcularTotal(local);
     const cambio = local.pago ? (local.pago - total).toFixed(2) : "";
+    totalVentas += total;
+    if (local.pago > total) {
+      totalCambio += (local.pago - total);
+    }
+
     datos.push([
       local.nombre,
       local.precioHarina,
@@ -113,11 +134,42 @@ function exportarExcel() {
     ]);
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(datos);
+  datos.push(["", "", "", "", "Totales:", totalVentas.toFixed(2), "", totalCambio.toFixed(2)]);
+
+  const ws = XLSX.utils.aoa_to_sheet([]);
+  XLSX.utils.sheet_add_aoa(ws, datos, { origin: "A1" });
+
+  // Cuadrícula y ancho de columnas
+  ws['!cols'] = [
+    { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+    { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
+  ];
+  ws['!gridlines'] = true;
+  ws['!pageSetup'] = {
+    paperSize: 9, // A4
+    orientation: "landscape",
+    fitToPage: true,
+    fitToWidth: 1,
+    fitToHeight: 0,
+    margins: { left: 0.25, right: 0.25, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 }
+  };
+
+  // Fila de encabezado: fila 4
+  const encabezadoFila = 4;
+  const columnaCount = 8;
+  for (let c = 0; c < columnaCount; c++) {
+    const letra = String.fromCharCode(65 + c); // A, B, C...
+    const celda = ws[`${letra}${encabezadoFila}`];
+    if (celda && !celda.s) celda.s = {};
+    celda.s.fill = { fgColor: { rgb: "FFF4CC" } }; // amarillo claro
+    celda.s.font = { bold: true };
+  }
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Tortillas");
-  const fecha = new Date().toISOString().slice(0, 10);
-  XLSX.writeFile(wb, `Tortillas_${fecha}.xlsx`);
+
+  const fechaArchivo = fechaHoy.toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `Tortilleria_Margarita_${fechaArchivo}.xlsx`);
 }
 
 function filtrarLocales() {
@@ -164,83 +216,6 @@ function borrarTodo() {
     alert("Los datos numéricos han sido reiniciados.");
   }
 }
-
-
-function exportarExcel() {
-  const datos = [];
-
-  // Obtener y formatear la fecha
-  const fechaHoy = new Date();
-  const fechaFormateada = fechaHoy.toLocaleDateString('es-MX', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
-
-  // Encabezado personalizado
-  datos.push(["Tortillería Margarita"]);
-  datos.push(["Fecha:", fechaFormateada]);
-  datos.push([""]); // Espacio en blanco
-
-  // Encabezados de la tabla
-  datos.push([
-    "Local", "Precio Harina", "Cant. Harina",
-    "Cant. Integral", "Devueltas", "Total $", "Pagó con", "Cambio"
-  ]);
-
-  let totalVentas = 0;
-  let totalCambio = 0;
-
-  locales.forEach(local => {
-    const total = calcularTotal(local);
-    const cambio = local.pago ? (local.pago - total).toFixed(2) : "";
-    totalVentas += total;
-    if (local.pago > total) {
-      totalCambio += (local.pago - total);
-    }
-
-    datos.push([
-      local.nombre,
-      local.precioHarina,
-      local.harina,
-      local.integral,
-      local.devueltas || 0,
-      total.toFixed(2),
-      local.pago || "",
-      cambio
-    ]);
-  });
-
-  // Fila de totales
-  datos.push(["", "", "", "", "Totales:", totalVentas.toFixed(2), "", totalCambio.toFixed(2)]);
-
-  const ws = XLSX.utils.aoa_to_sheet(datos);
-
-  // Ancho de columnas
-  ws['!cols'] = [
-    { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
-    { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
-  ];
-
-  // Configurar impresión para hoja A4 horizontal
-  ws['!pageSetup'] = {
-    paperSize: 9, // A4
-    orientation: "landscape",
-    fitToPage: true,
-    fitToWidth: 1,
-    fitToHeight: 0,
-    margins: { left: 0.25, right: 0.25, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 }
-  };
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Tortillas");
-
-  const fechaArchivo = fechaHoy.toISOString().slice(0, 10);
-  XLSX.writeFile(wb, `Tortilleria_Margarita_${fechaArchivo}.xlsx`);
-}
-
-
-
 
 // Inicializar
 renderizarTabla();
