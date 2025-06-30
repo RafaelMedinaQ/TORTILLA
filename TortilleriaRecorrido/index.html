@@ -1,49 +1,50 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tortillería Margarita</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="estilos.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="contenedor">
     <h1>Tortillería Margarita</h1>
 
-    <input type="text" id="buscador" placeholder="Buscar local..." oninput="filtrarLocales()">
+    <div class="barra-controles">
+      <input type="text" id="buscador" placeholder="Buscar local..." oninput="filtrarLocales()">
+      <button onclick="agregarLocal()">➕ Agregar local</button>
+      <button onclick="exportarExcel()">📄 Exportar a Excel</button>
+      <button onclick="borrarTodo()">🧹 Borrar cantidades</button>
+    </div>
 
     <table>
       <thead>
         <tr>
           <th>Local</th>
           <th>Precio Harina</th>
-          <th>Harina</th>
-          <th>Integral</th>
+          <th>Cant. Harina</th>
+          <th>$ Harina</th>
+          <th>Cant. Integral</th>
+          <th>$ Integral</th>
           <th>Devueltas</th>
           <th>Total $</th>
           <th>Pagó con</th>
           <th>Cambio</th>
-          <th>Acciones</th>
+          <th>Acción</th>
         </tr>
       </thead>
-      <tbody id="tablaLocales">
-        <!-- Generado dinámicamente -->
-      </tbody>
+      <tbody id="tablaLocales"></tbody>
     </table>
 
-    <div id="resumenes">
+    <div class="resumen">
       <p id="resumenTotal">Total vendido: $0.00</p>
       <p id="resumenCambio">Total de cambio entregado: $0.00</p>
     </div>
-
-    <div class="botones">
-      <button onclick="agregarLocal()">Agregar local</button>
-      <button onclick="exportarExcel()">Guardar en Excel</button>
-      <button onclick="borrarTodo()">Borrar datos</button>
-    </div>
   </div>
 
+  <!-- Librería Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Tu lógica -->
   <script src="script.js"></script>
 </body>
 </html>
