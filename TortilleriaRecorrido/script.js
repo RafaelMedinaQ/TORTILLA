@@ -10,7 +10,9 @@ function renderizarTabla() {
   tabla.innerHTML = "";
   locales.forEach((local, index) => {
     const fila = document.createElement("tr");
-    const total = calcularTotal(local);
+    const subtotalHarina = local.harina * local.precioHarina;
+    const subtotalIntegral = local.integral * precioIntegral;
+    const total = subtotalHarina + subtotalIntegral;
     const cambio = local.pago > 0 ? (local.pago - total).toFixed(2) : "";
 
     fila.innerHTML = `
@@ -22,7 +24,9 @@ function renderizarTabla() {
         </select>
       </td>
       <td><input type="number" inputmode="numeric" min="0" value="${local.harina}" onchange="actualizarCantidad(${index}, 'harina', this.value)"></td>
+      <td>$${subtotalHarina.toFixed(2)}</td>
       <td><input type="number" inputmode="numeric" min="0" value="${local.integral}" onchange="actualizarCantidad(${index}, 'integral', this.value)"></td>
+      <td>$${subtotalIntegral.toFixed(2)}</td>
       <td><input type="number" inputmode="numeric" min="0" value="${local.devueltas || 0}" onchange="actualizarCantidad(${index}, 'devueltas', this.value)"></td>
       <td class="total" id="total-${index}">$${total.toFixed(2)}</td>
       <td><input type="number" inputmode="numeric" min="0" value="${local.pago || ""}" onchange="actualizarPago(${index}, this.value)"></td>
@@ -97,9 +101,7 @@ function exportarExcel() {
   const datos = [];
   const fechaHoy = new Date();
   const fechaFormateada = fechaHoy.toLocaleDateString('es-MX', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
+    day: 'numeric', month: 'long', year: 'numeric'
   });
 
   datos.push(["Tortillería Margarita"]);
@@ -107,15 +109,17 @@ function exportarExcel() {
   datos.push([""]);
 
   datos.push([
-    "Local", "Precio Harina", "Cant. Harina",
-    "Cant. Integral", "Devueltas", "Total $", "Pagó con", "Cambio"
+    "Local", "Precio Harina", "Cant. Harina", "$ Harina",
+    "Cant. Integral", "$ Integral", "Devueltas", "Total $", "Pagó con", "Cambio"
   ]);
 
   let totalVentas = 0;
   let totalCambio = 0;
 
   locales.forEach(local => {
-    const total = calcularTotal(local);
+    const subtotalHarina = local.harina * local.precioHarina;
+    const subtotalIntegral = local.integral * precioIntegral;
+    const total = subtotalHarina + subtotalIntegral;
     const cambio = local.pago ? (local.pago - total).toFixed(2) : "";
     totalVentas += total;
     if (local.pago > total) {
@@ -126,7 +130,9 @@ function exportarExcel() {
       local.nombre,
       local.precioHarina,
       local.harina,
+      subtotalHarina.toFixed(2),
       local.integral,
+      subtotalIntegral.toFixed(2),
       local.devueltas || 0,
       total.toFixed(2),
       local.pago || "",
@@ -134,40 +140,21 @@ function exportarExcel() {
     ]);
   });
 
-  datos.push(["", "", "", "", "Totales:", totalVentas.toFixed(2), "", totalCambio.toFixed(2)]);
+  datos.push(["", "", "", "", "", "", "Totales:", totalVentas.toFixed(2), "", totalCambio.toFixed(2)]);
 
   const ws = XLSX.utils.aoa_to_sheet([]);
   XLSX.utils.sheet_add_aoa(ws, datos, { origin: "A1" });
 
-  // Cuadrícula y ancho de columnas
-  ws['!cols'] = [
-    { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
-    { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
-  ];
+  ws['!cols'] = new Array(10).fill({ wch: 15 });
   ws['!gridlines'] = true;
   ws['!pageSetup'] = {
-    paperSize: 9, // A4
-    orientation: "landscape",
-    fitToPage: true,
-    fitToWidth: 1,
-    fitToHeight: 0,
+    paperSize: 9, orientation: "landscape", fitToPage: true,
+    fitToWidth: 1, fitToHeight: 0,
     margins: { left: 0.25, right: 0.25, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 }
   };
 
-  // Fila de encabezado: fila 4
-  const encabezadoFila = 4;
-  const columnaCount = 8;
-  for (let c = 0; c < columnaCount; c++) {
-    const letra = String.fromCharCode(65 + c); // A, B, C...
-    const celda = ws[`${letra}${encabezadoFila}`];
-    if (celda && !celda.s) celda.s = {};
-    celda.s.fill = { fgColor: { rgb: "FFF4CC" } }; // amarillo claro
-    celda.s.font = { bold: true };
-  }
-
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Tortillas");
-
   const fechaArchivo = fechaHoy.toISOString().slice(0, 10);
   XLSX.writeFile(wb, `Tortilleria_Margarita_${fechaArchivo}.xlsx`);
 }
