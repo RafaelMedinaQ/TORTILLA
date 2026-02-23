@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Hace que se vea bien en móviles (Android/iOS) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema Tortillería (Harina)</title>
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="HojaEstilo.css"/>
+</head>
+<body>
+
+  <!-- =========================
+       HEADER (barra superior)
+       ========================= -->
+  <header class="header">
+    <div class="brand">
+      <div class="logo">🌮</div>
+      <div>
+        <h1>Sistema Tortillería</h1>
+        <!-- Se llena con la fecha del día desde JS -->
+        <p id="todayLabel" class="sub">Registro del día</p>
+      </div>
+    </div>
+
+    <!-- Botones generales -->
+    <div class="header-actions">
+      <button id="btnPrint" class="btn">🖨️ Imprimir hoja</button>
+      <button id="btnExport" class="btn">⬇️ Exportar CSV</button>
+      <button id="btnClearDay" class="btn danger">🧹 Borrar día</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- =========================
+         SECCIÓN LOCALES (COLAPSABLE)
+         ========================= -->
+    <section class="card" id="localsCard">
+      <div class="card-head">
+        <div>
+          <h2>Locales / Negocios</h2>
+          <div class="muted">Harina: $24 o $26 por local • Integral: $30 fijo</div>
+        </div>
+
+        <!-- Botón para minimizar/mostrar -->
+        <button id="btnToggleLocals" class="btn">▾ Minimizar</button>
+      </div>
+
+      <!-- Contenido colapsable -->
+      <div id="localsContent" class="collapsible open">
+
+        <div class="grid locals-grid">
+          <label class="field">
+            <span>Nombre del local</span>
+            <input id="localName" type="text" placeholder="Ej. Taquería El Gordo" />
+          </label>
+
+          <label class="field">
+            <span>Precio harina para este local</span>
+            <select id="localHarinaPrice">
+              <option value="24">Harina $24</option>
+              <option value="26">Harina $26</option>
+            </select>
+          </label>
+
+          <div class="locals-actions">
+            <!-- Si no estás editando: agrega. Si estás editando: guarda cambios -->
+            <button id="btnAddLocal" class="btn primary">➕ Agregar local</button>
+            <button id="btnCancelEditLocal" class="btn" disabled>✖ Cancelar edición</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Tabla que muestra locales guardados -->
+          <div class="table-wrap" style="grid-column: 1 / -1;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Local</th>
+                  <th>Harina</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="localsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /localsContent -->
+    </section>
+
+    <!-- =========================
+         SECCIÓN NUEVO PEDIDO
+         ========================= -->
+    <section class="card">
+      <h2>Nuevo pedido</h2>
+
+      <div class="grid">
+        <label class="field">
+          <span>Local / Cliente</span>
+          <select id="customerSelect">
+            <option value="">— Selecciona un local —</option>
+          </select>
+          <small class="help">Tip: agrega locales arriba y luego selecciónalos aquí.</small>
+        </label>
+
+        <label class="field">
+          <span>Precio paquete harina ($)</span>
+          <!-- Se llena automáticamente según el local (24 o 26) -->
+          <input id="priceHarina" type="number" step="0.01" min="0" value="24" readonly />
+        </label>
+
+        <label class="field">
+          <span>Precio paquete integral ($)</span>
+          <!-- Siempre fijo a 30 -->
+          <input id="priceIntegral" type="number" step="0.01" min="0" value="30" readonly />
+        </label>
+
+        <div class="divider"></div>
+
+        <label class="field">
+          <span>Paquetes harina</span>
+          <input id="qtyHarina" type="number" min="0" value="0"/>
+        </label>
+
+        <label class="field">
+          <span>Paquetes integral</span>
+          <input id="qtyIntegral" type="number" min="0" value="0"/>
+        </label>
+
+        <label class="field">
+          <span>Notas / Cambios de paquetes</span>
+          <textarea id="notes" rows="3" placeholder="Ej: Cambió 1 harina por 1 integral / Devolvió 2 paquetes / etc."></textarea>
+        </label>
+
+        <div class="divider"></div>
+
+        <label class="field">
+          <span>Pagó con ($)</span>
+          <input id="paid" type="number" step="0.01" min="0" value="0"/>
+        </label>
+
+        <!-- Resumen de cálculos -->
+        <div class="summary">
+          <div class="pill">
+            <div class="pill-label">Subtotal harina</div>
+            <div id="subHarina" class="pill-value">$0.00</div>
+          </div>
+          <div class="pill">
+            <div class="pill-label">Subtotal integral</div>
+            <div id="subIntegral" class="pill-value">$0.00</div>
+          </div>
+          <div class="pill big">
+            <div class="pill-label">Total</div>
+            <div id="total" class="pill-value">$0.00</div>
+          </div>
+          <div class="pill">
+            <div class="pill-label">Cambio / Faltante</div>
+            <div id="change" class="pill-value">$0.00</div>
+            <div id="changeHint" class="hint"></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="btnAddSale" class="btn primary">➕ Registrar venta</button>
+          <button id="btnReset" class="btn">↩️ Limpiar formulario</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         SECCIÓN VENTAS DEL DÍA
+         ========================= -->
+    <section class="card">
+      <div class="card-head">
+        <h2>Ventas del día</h2>
+
+        <div class="totals">
+          <div class="mini">
+            <div class="mini-label">Paquetes harina</div>
+            <div id="dayHarina" class="mini-value">0</div>
+          </div>
+          <div class="mini">
+            <div class="mini-label">Paquetes integral</div>
+            <div id="dayIntegral" class="mini-value">0</div>
+          </div>
+          <div class="mini big">
+            <div class="mini-label">Total $ del día</div>
+            <div id="dayMoney" class="mini-value">$0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="salesTable">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Cliente</th>
+              <th>Harina</th>
+              <th>Integral</th>
+              <th>Total $</th>
+              <th>Pagó</th>
+              <th>Cambio</th>
+              <th>Notas / Cambios</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="salesBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer">
+      
+    </footer>
+
+  </main>
+
+  <!-- Lógica del sistema -->
+  <script src="app.js"></script>
+</body>
+</html>
